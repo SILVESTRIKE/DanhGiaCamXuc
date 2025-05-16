@@ -5,4 +5,4 @@ pandas
 matplotlib
 seaborn
 scikit-learn
-pyvi
+underthesea==1.3.3

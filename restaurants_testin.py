@@ -1,7 +1,7 @@
 import streamlit as st
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from pyvi import ViTokenizer
+from underthesea import word_tokenize
 import re
 import numpy as np
 import pandas as pd
@@ -38,8 +38,8 @@ def load_model():
 # Preprocess text
 def preprocess_text(text):
     text = re.sub(r'[^\w\s]', '', text)
-    return ViTokenizer.tokenize(text.lower())
-
+    text = word_tokenize(text, format="text").lower()
+    return text
 
 # Predict function
 def predict(text, tokenizer, model):

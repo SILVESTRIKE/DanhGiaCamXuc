@@ -1,10 +1,11 @@
 import re
 import datetime
 import torch
-from pyvi import ViTokenizer
+from underthesea import word_tokenize
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from config import ASPECTS, LABEL_ENCODER, ASPECT_KEYWORDS
 import streamlit as st
+import unicodedata  # SỬA: Thêm unicodedata để chuẩn hóa Unicode
 
 @st.cache_resource
 def load_model_and_tokenizer(model_choice):
@@ -27,8 +28,12 @@ def load_model_and_tokenizer(model_choice):
 #     return tokenizer, model
 
 def preprocess_text(text):
+    text = unicodedata.normalize('NFC', text)  # SỬA: Thêm chuẩn hóa Unicode
+    # LÝ DO: Đảm bảo văn bản đầu vào (có thể chứa ký tự Unicode không chuẩn) được xử lý giống mã huấn luyện
     text = re.sub(r'[^\w\s]', '', text)
-    return ViTokenizer.tokenize(text.lower())
+    text = word_tokenize(text, format="text").lower()  # SỬA: Chuẩn hóa format="text" để khớp với mã huấn luyện
+    # LÝ DO: Đảm bảo tiền xử lý nhất quán với mã huấn luyện, tránh sai lệch trong mã hóa
+    return text
 
 def predict(text, tokenizer, model, aspect_type):  # aspect_type = "Nhà hàng" hoặc "Khách sạn"
     aspects = ASPECTS[aspect_type]
@@ -59,17 +64,26 @@ def predict(text, tokenizer, model, aspect_type):  # aspect_type = "Nhà hàng" 
 
     with torch.no_grad():
         outputs = model(input_ids, attention_mask=attention_mask)
+        
+    expected_size = len(aspects) * 3
+    if outputs.logits.shape[-1] != expected_size:
+        raise ValueError(
+            f"Model output size {outputs.logits.shape[-1]} does not match expected {expected_size}. "
+            f"Ensure the model supports {len(aspects)} aspects."
+        )
+
     logits = outputs.logits.view(-1, len(aspects), 3)
     probs = torch.nn.functional.softmax(logits, dim=2)[0]
     preds = torch.argmax(probs, dim=1)
-
+    
     results = {}
     for i, aspect in enumerate(aspects):
         if aspect in mentioned_aspects:
             label_id = preds[i].item()
-            results[aspect] = {
-                "label": LABEL_ENCODER[label_id],
-                "probs": probs[i].tolist()
+            if probs[i][label_id] > 0.5:
+                results[aspect] = {
+                    "label": LABEL_ENCODER[label_id],
+                    "probs": probs[i].tolist()
             }
 
     return results, len(text), input_ids.shape[1], len(clean_text.split()), datetime.datetime.now()
