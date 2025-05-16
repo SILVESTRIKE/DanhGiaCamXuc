@@ -66,4 +66,4 @@ ASPECT_KEYWORDS = {
     }
 }
 
-LABEL_ENCODER = ['positive', 'negative', 'neutral'] 
+LABEL_ENCODER = ['neutral','negative','positive'] 
