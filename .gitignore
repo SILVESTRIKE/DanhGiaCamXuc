@@ -1,0 +1,18 @@
+models/
+.venv/
+# Python
+__pycache__/
+*.py[cod]
+*.pkl
+
+# Streamlit
+.streamlit/
+
+# Env
+.env
+.venv/
+env/
+*.env
+
+# VSCode
+.vscode/
