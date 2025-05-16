@@ -43,7 +43,7 @@ def load_model_and_tokenizer(model_choice):
 
 def preprocess_text(text):
     text = unicodedata.normalize('NFC', text)  # SỬA: Thêm chuẩn hóa Unicode
-    text = re.sub(r'[^\w\s]', '', text)
+    text = re.sub(r'[^\w\s.,?!]', '', text)  # Giữ lại một số dấu câu cơ bản
     text = word_tokenize(text, format="text").lower()  # SỬA: Chuẩn hóa format="text" để khớp với mã huấn luyện
     return text
 
@@ -92,7 +92,7 @@ def predict(text, tokenizer, model, aspect_type):  # aspect_type = "Nhà hàng" 
     for i, aspect in enumerate(aspects):
         if aspect in mentioned_aspects:
             label_id = preds[i].item()
-            if probs[i][label_id] > 0.6:
+            if probs[i][label_id] > 0.5:
                 results[aspect] = {
                     "label": LABEL_ENCODER[label_id],
                     "probs": probs[i].tolist()
