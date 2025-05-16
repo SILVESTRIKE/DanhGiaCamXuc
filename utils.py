@@ -14,10 +14,24 @@ def load_model_and_tokenizer(model_choice):
         "Khách sạn": "HakuDevon/phobert_hotel_model"
     }
     path = path_map[model_choice]
-    tokenizer = AutoTokenizer.from_pretrained(path)
-    model = AutoModelForSequenceClassification.from_pretrained(path)
-    model.eval()
-    return tokenizer, model
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(path)
+        model = AutoModelForSequenceClassification.from_pretrained(path)
+        model.eval()
+        aspects = ASPECTS[model_choice]
+        expected_size = len(aspects) * 3
+        test_input = tokenizer.encode_plus(
+            "test", max_length=128, padding='max_length', truncation=True, return_tensors='pt'
+        )
+        with torch.no_grad():
+            test_output = model(test_input['input_ids'], attention_mask=test_input['attention_mask'])
+        if test_output.logits.shape[-1] != expected_size:
+            st.error(f"Model {model_choice} không hỗ trợ {len(aspects)} khía cạnh. Kích thước đầu ra: {test_output.logits.shape[-1]}, kỳ vọng: {expected_size}")
+            return None, None
+        return tokenizer, model
+    except Exception as e:
+        st.error(f"Lỗi khi tải model {model_choice}: {e}")
+        return None, None
 
 # @st.cache_resource
 # def load_model_and_tokenizer(model_choice):
@@ -29,10 +43,8 @@ def load_model_and_tokenizer(model_choice):
 
 def preprocess_text(text):
     text = unicodedata.normalize('NFC', text)  # SỬA: Thêm chuẩn hóa Unicode
-    # LÝ DO: Đảm bảo văn bản đầu vào (có thể chứa ký tự Unicode không chuẩn) được xử lý giống mã huấn luyện
     text = re.sub(r'[^\w\s]', '', text)
     text = word_tokenize(text, format="text").lower()  # SỬA: Chuẩn hóa format="text" để khớp với mã huấn luyện
-    # LÝ DO: Đảm bảo tiền xử lý nhất quán với mã huấn luyện, tránh sai lệch trong mã hóa
     return text
 
 def predict(text, tokenizer, model, aspect_type):  # aspect_type = "Nhà hàng" hoặc "Khách sạn"
@@ -80,7 +92,7 @@ def predict(text, tokenizer, model, aspect_type):  # aspect_type = "Nhà hàng" 
     for i, aspect in enumerate(aspects):
         if aspect in mentioned_aspects:
             label_id = preds[i].item()
-            if probs[i][label_id] > 0.5:
+            if probs[i][label_id] > 0.6:
                 results[aspect] = {
                     "label": LABEL_ENCODER[label_id],
                     "probs": probs[i].tolist()
