@@ -18,28 +18,28 @@ def chart():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 📊 Tỷ lệ cảm xúc")
+        st.markdown("### Tỷ lệ cảm xúc")
         fig1, ax1 = plt.subplots()
         df['Cảm xúc'].value_counts().plot.pie(autopct='%1.1f%%', ax=ax1)
         ax1.set_ylabel("")
         st.pyplot(fig1)
 
     with col2:
-        st.markdown("### 📊 Phân bố cảm xúc")
+        st.markdown("### Phân bố cảm xúc")
         fig2, ax2 = plt.subplots()
         sns.countplot(data=df, x="Cảm xúc", palette='Set2', ax=ax2)
         st.pyplot(fig2)
 
     col3, col4 = st.columns(2)
     with col3:
-        st.markdown("### 🔠 Phân phối token")
+        st.markdown("### Phân phối token")
         token_lengths = [entry['token_len'] for entry in data]
         fig3, ax3 = plt.subplots()
         sns.histplot(token_lengths, bins=10, kde=True, ax=ax3)
         st.pyplot(fig3)
 
     with col4:
-        st.markdown("### 📉 Xác suất trung bình")
+        st.markdown("### Xác suất trung bình")
         mean_probs = df[["Tích cực", "Tiêu cực", "Trung tính"]].mean()
         fig4, ax4 = plt.subplots()
         sns.barplot(x=mean_probs.index, y=mean_probs.values, palette='pastel', ax=ax4)

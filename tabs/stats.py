@@ -22,7 +22,7 @@ def stats():
     df_all = pd.DataFrame(sentiments_all)
     df_all['date'] = df_all['time'].dt.date
 
-    st.markdown(f"### 📅 Biểu đồ cảm xúc theo thời gian")
+    st.markdown(f"###Biểu đồ cảm xúc theo thời gian")
     fig_time, ax_time = plt.subplots()
     sns.countplot(x="date", hue="label", data=df_all, ax=ax_time)
     ax_time.set_ylabel("Số lượt")

@@ -1,7 +1,7 @@
 import streamlit as st
 
 def history():
-    st.header("📜 Lịch sử phân tích")
+    st.header("Lịch sử phân tích")
 
     if 'history' not in st.session_state:
         st.session_state.history = []
