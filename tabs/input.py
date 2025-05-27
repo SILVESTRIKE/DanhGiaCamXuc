@@ -32,7 +32,7 @@ def input():
         latest = st.session_state.history[-1]
         df = pd.DataFrame([
             [k, v['label'], *v['probs']] for k, v in latest['result'].items()
-        ], columns=["Khía cạnh", "Cảm xúc", "Tích cực", "Tiêu cực", "Trung tính"])
+        ], columns=["Khía cạnh", "Cảm xúc", "Tiêu cực", "Trung tính", "Tích cực"])
         st.dataframe(df)
 
         # Lấy nhãn phổ biến nhất trong kết quả
