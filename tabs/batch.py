@@ -7,7 +7,7 @@ from utils import load_model_and_tokenizer, predict, DummyPreprocessor
 from config import ASPECTS
 
 
-def batch_predict():
+def batch_input():
     st.header("📂 Phân tích hàng loạt từ file đánh giá")
 
     model_choice = st.session_state.model_choice
@@ -104,3 +104,6 @@ def batch_predict():
                 file_name="ket_qua_phan_tich.xlsx",
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
+        st.success("Phân tích hoàn tất!")
+    else:
+        st.info("Vui lòng tải lên file chứa đánh giá để bắt đầu phân tích.")
