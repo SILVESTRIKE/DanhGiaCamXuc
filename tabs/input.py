@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from utils import load_model_and_tokenizer, predict
-from config import ASPECTS
+from utils import load_model_and_tokenizer, predict, DummyPreprocessor
+from config import ASPECTS, LABEL_ENCODER
+import torch
 
 def input():
     model_choice = st.session_state.model_choice
@@ -12,7 +13,14 @@ def input():
 
     text_input = st.text_area("Nhập đánh giá:", height=150)
     if st.button("Phân tích") and text_input.strip():
-        output = predict(text_input, tokenizer, model, aspect_type=model_choice)
+        output = predict(
+            text_input,
+            tokenizer,
+            model,
+            aspect_type=model_choice,
+            device=None,
+            preprocessor=DummyPreprocessor()
+        )
 
         if isinstance(output, str):
             st.warning(output)
@@ -30,27 +38,37 @@ def input():
 
     if st.session_state.history:
         latest = st.session_state.history[-1]
-        df = pd.DataFrame([
-            [k, v['label'], *v['probs']] for k, v in latest['result'].items()
-        ], columns=["Khía cạnh", "Cảm xúc", "Tiêu cực", "Trung tính", "Tích cực"])
-        st.dataframe(df)
+        result_data = latest['result']
 
-        # Lấy nhãn phổ biến nhất trong kết quả
-        most_common_sentiment = df['Cảm xúc'].value_counts().idxmax()
-        confidence = df[['Tích cực','Tiêu cực','Trung tính']].max(axis=1).mean()
+        if isinstance(result_data, dict):
+            # Hiển thị kết quả theo format cũ: label + probs
+            df = pd.DataFrame([
+                [k, v['label'].capitalize(), f"{max(v['probs']) * 100:.1f}%"]
+                for k, v in result_data.items()
+            ], columns=["Khía cạnh", "Cảm xúc", "Độ tin cậy"])
 
-        # Map nhãn sang màu sắc
-        color_map = {
-            'positive': 'green',
-            'negative': 'red',
-            'neutral': 'gray'
-        }
-        color = color_map.get(most_common_sentiment.lower(), 'black')
+            st.dataframe(df, use_container_width=True)
+
+            # Thống kê tổng quan
+            most_common_sentiment = df['Cảm xúc'].value_counts().idxmax()
+            avg_confidence = df['Độ tin cậy'].apply(lambda x: float(x.strip('%'))).mean() / 100
+
+            color_map = {
+                'Positive': 'green',
+                'Negative': 'red',
+                'Neutral': 'gray'
+            }
+            color = color_map.get(most_common_sentiment, 'black')
+
+            st.markdown(
+                f'<p style="color:{color}; font-weight:bold; font-size:18px;">'
+                f'Tổng quan: {most_common_sentiment} | Tự tin trung bình: {avg_confidence:.2%}'
+                f'</p>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.warning(result_data)
 
         st.markdown(
-            f'<p style="color:{color}; font-weight:bold;">'
-            f'Tổng quan: {most_common_sentiment} | Tự tin: {confidence:.2f}'
-            f'</p>',
-            unsafe_allow_html=True
+            f"**Văn bản:** {latest['char_len']} ký tự | {latest['word_count']} từ | {latest['token_len']} token"
         )
-        st.markdown(f"**Văn bản:** {latest['char_len']} ký tự | {latest['word_count']} từ | {latest['token_len']} token")
