@@ -104,5 +104,3 @@ def batch_predict():
                 file_name="ket_qua_phan_tich.xlsx",
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
-        st.success("Phân tích hoàn tất!")
-        
