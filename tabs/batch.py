@@ -7,7 +7,7 @@ from utils import load_model_and_tokenizer, predict, DummyPreprocessor
 from config import ASPECTS
 
 
-def batch_input():
+def batch_predict():
     st.header("📂 Phân tích hàng loạt từ file đánh giá")
 
     model_choice = st.session_state.model_choice
@@ -97,13 +97,9 @@ def batch_input():
             excel_buffer = io.BytesIO()
             with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
                 csv.to_excel(writer, index=False, sheet_name='PhanTich')
-                writer.save()
             st.download_button(
                 label="📥 Tải kết quả dạng Excel",
                 data=excel_buffer.getvalue(),
                 file_name="ket_qua_phan_tich.xlsx",
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
-        st.success("Phân tích hoàn tất!")
-    else:
-        st.info("Vui lòng tải lên file chứa đánh giá để bắt đầu phân tích.")
