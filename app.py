@@ -3,12 +3,13 @@ from tabs.input import input
 from tabs.chart import chart
 from tabs.history import history
 from tabs.stats import stats
+from tabs.batch_input import batch_predict
 
 st.set_page_config(page_title="Phân tích cảm xúc đa mô hình", layout="wide")
 
 st.sidebar.title("🧠 Phân tích cảm xúc")
 model_choice = st.sidebar.selectbox("Chọn mô hình", ["Nhà hàng", "Khách sạn"])
-page = st.sidebar.radio("Chọn trang", ["Nhập liệu", "Biểu đồ", "Lịch sử", "Thống kê"])
+page = st.sidebar.radio("Chọn trang", ["Nhập liệu", "Biểu đồ", "Lịch sử", "Thống kê", "Phân tích hàng loạt từ file"])
 
 st.session_state.model_choice = model_choice
 
@@ -20,3 +21,5 @@ elif page == "Lịch sử":
     history()
 elif page == "Thống kê":
     stats()
+elif page == "Phân tích từ file":
+    batch_predict()
