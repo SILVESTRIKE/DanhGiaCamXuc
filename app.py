@@ -3,7 +3,7 @@ from tabs.input import input
 from tabs.chart import chart
 from tabs.history import history
 from tabs.stats import stats
-from tabs.batch_input import batch_predict
+from tabs.batch import batch_predict
 
 st.set_page_config(page_title="Phân tích cảm xúc đa mô hình", layout="wide")
 
