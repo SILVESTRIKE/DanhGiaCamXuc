@@ -100,10 +100,6 @@ def batch_input():
         if not results_all:
             st.warning("Không có khía cạnh nào được phát hiện trong dữ liệu.")
             return
-
-        df_out = pd.DataFrame(results_all)
-        st.success(f"Đã phân tích {len(df_out)} dòng kết quả từ {len(df)} review.")
-
         with st.expander("📄 Xem bảng kết quả"):
             st.dataframe(df_out, use_container_width=True)
 
