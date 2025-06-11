@@ -56,23 +56,43 @@ def batch_input():
         st.info(f"Đang phân tích {len(df)} dòng đánh giá...")
         results_all = []
 
-        for i, row in df.iterrows():
-            text = str(row['review'])
+        for idx, row in enumerate(df.itertuples(index=False)):
+            try:
+                # Access column by attribute name, e.g., row.review
+                text = str(row.review)
+                if not text.strip():  # Skip empty strings
+                    continue
+            except AttributeError:
+                st.error("Lỗi đọc cột 'review'. Vui lòng kiểm tra lại tên cột trong file.")
+                return
+
             output = predict(text, tokenizer, model, aspect_type=model_choice, preprocessor=preprocessor)
 
             if isinstance(output, str):
+                # Optionally log the reviews that failed prediction
+                # st.write(f"Bỏ qua review: {text[:100]}... (Lỗi: {output})")
                 continue
-
+            
+            # Ensure output is in the expected format before unpacking
+            if not isinstance(output, (list, tuple)) or len(output) == 0 or not isinstance(output[0], dict):
+                continue
+            
             result, *_ = output
             for aspect, val in result.items():
                 results_all.append({
-                    'STT': str(i + 1),
+                    'STT': str(idx + 1),  # Use the enumerate counter `idx`
                     'Văn bản': text,
                     'Khía cạnh': aspect,
                     'Cảm xúc': val['label'].capitalize(),
                     'Tự tin': max(val['probs'])
                 })
-
+            
+            # Update progress bar
+            if idx % 10 == 0:  # Update every 10 reviews
+                st.progress((idx + 1) / len(df))
+                st.progress(1.0)  # Complete the progress bar
+        # Check if results_all is empty 
+        
         if not results_all:
             st.warning("Không có khía cạnh nào được phát hiện trong dữ liệu.")
             return
