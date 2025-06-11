@@ -6,7 +6,6 @@ import seaborn as sns
 from utils import load_model_and_tokenizer, predict, DummyPreprocessor
 from config import ASPECTS
 
-
 def batch_input():
     st.header("📂 Phân tích hàng loạt từ file đánh giá")
 

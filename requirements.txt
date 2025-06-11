@@ -7,3 +7,4 @@ seaborn
 scikit-learn
 underthesea==1.3.3
 xlsxwriter
+openpyxl
