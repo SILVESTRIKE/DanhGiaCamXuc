@@ -87,11 +87,7 @@ def batch_input():
                     'Tự tin': max(val['probs'])
                 })
             
-            # Update progress bar
-            if idx % 10 == 0:  # Update every 10 reviews
-                st.progress((idx + 1) / len(df))
-                st.progress(1.0)  # Complete the progress bar
-        # Check if results_all is empty 
+            st.progress((idx + 1) / len(df))
         
         if not results_all:
             st.warning("Không có khía cạnh nào được phát hiện trong dữ liệu.")
