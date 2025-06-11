@@ -48,7 +48,7 @@ def batch_input():
             result, *_ = output
             for aspect, val in result.items():
                 results_all.append({
-                    'STT': i + 1,
+                    'STT': str(i + 1),
                     'Văn bản': text,
                     'Khía cạnh': aspect,
                     'Cảm xúc': val['label'].capitalize(),
