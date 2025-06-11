@@ -18,7 +18,15 @@ def batch_input():
     if uploaded_file:
         try:
             if uploaded_file.name.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
+                try:
+                    df = pd.read_csv(uploaded_file, encoding='utf-8', sep=',')
+                except Exception as e:
+                    st.error(f"Không thể đọc CSV với mã hóa UTF-8: {e}")
+                    try:
+                        df = pd.read_csv(uploaded_file, encoding='latin1', sep=',')
+                    except Exception as e2:
+                        st.error(f"Không thể đọc CSV với mã hóa Latin1: {e2}")
+                        return
             elif uploaded_file.name.endswith((".xlsx", ".xls")):
                 df = pd.read_excel(uploaded_file)
             elif uploaded_file.name.endswith(".txt"):
