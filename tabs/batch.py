@@ -52,8 +52,6 @@ def batch_input():
         if 'review' not in df.columns:
             st.error("File phải có cột tên 'review'")
             return
-
-        st.info(f"Đang phân tích {len(df)} dòng đánh giá...")
         results_all = []
                 
         # 1. Tạo một placeholder (khung chứa) rỗng
