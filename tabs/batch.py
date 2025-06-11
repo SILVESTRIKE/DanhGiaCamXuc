@@ -55,40 +55,48 @@ def batch_input():
 
         st.info(f"Đang phân tích {len(df)} dòng đánh giá...")
         results_all = []
+                
+        # 1. Tạo một placeholder (khung chứa) rỗng
+        status_placeholder = st.empty()
 
+        # 2. Đặt thanh progress bar vào placeholder đó
+        # Dùng `with` để các thành phần con được gom vào placeholder
+        with status_placeholder.container():
+            st.write(f"Đang phân tích {len(df)} dòng đánh giá...")
+            progress_bar = st.progress(0)
+
+        # 3. Chạy vòng lặp và chỉ cập nhật thanh progress bar
         for idx, row in enumerate(df.itertuples(index=False)):
             try:
-                # Access column by attribute name, e.g., row.review
                 text = str(row.review)
-                if not text.strip():  # Skip empty strings
+                if not text.strip():
                     continue
             except AttributeError:
-                st.error("Lỗi đọc cột 'review'. Vui lòng kiểm tra lại tên cột trong file.")
-                return
+                status_placeholder.error("Lỗi đọc cột 'review'. Vui lòng kiểm tra lại tên cột trong file.")
+                st.stop()
 
             output = predict(text, tokenizer, model, aspect_type=model_choice, preprocessor=preprocessor)
 
-            if isinstance(output, str):
-                # Optionally log the reviews that failed prediction
-                # st.write(f"Bỏ qua review: {text[:100]}... (Lỗi: {output})")
-                continue
-            
-            # Ensure output is in the expected format before unpacking
-            if not isinstance(output, (list, tuple)) or len(output) == 0 or not isinstance(output[0], dict):
+            if isinstance(output, str) or not isinstance(output, (list, tuple)) or len(output) == 0:
                 continue
             
             result, *_ = output
             for aspect, val in result.items():
                 results_all.append({
-                    'STT': str(idx + 1),  # Use the enumerate counter `idx`
+                    'STT': str(idx + 1),
                     'Văn bản': text,
                     'Khía cạnh': aspect,
                     'Cảm xúc': val['label'].capitalize(),
                     'Tự tin': max(val['probs'])
                 })
             
-            st.progress((idx + 1) / len(df))
-        
+            # Cập nhật thanh progress bên trong placeholder
+            progress_bar.progress((idx + 1) / len(df))
+
+        # 4. Sau khi xong, cập nhật chính placeholder đó bằng thông báo thành công
+        df_out = pd.DataFrame(results_all)
+        status_placeholder.success(f"Đã phân tích xong! Tìm thấy {len(df_out)} khía cạnh từ {len(df)} review.")
+                
         if not results_all:
             st.warning("Không có khía cạnh nào được phát hiện trong dữ liệu.")
             return
