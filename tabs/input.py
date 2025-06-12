@@ -11,7 +11,7 @@ def input():
     if 'history' not in st.session_state:
         st.session_state.history = []
 
-    text_input = st.text_area("Nhập đánh giá:", height=150)
+    text_input = st.text_area("Nhập đánh giá:", height=300)
     if st.button("Phân tích") and text_input.strip():
         output = predict(
             text_input,
@@ -19,8 +19,10 @@ def input():
             model,
             aspect_type=model_choice,
             device=None,
-            preprocessor=DummyPreprocessor()
+            preprocessor=DummyPreprocessor(),
+            confidence_threshold=st.session_state.confidence_threshold
         )
+    
 
         if isinstance(output, str):
             st.warning(output)

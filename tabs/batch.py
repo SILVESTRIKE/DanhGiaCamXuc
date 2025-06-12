@@ -52,7 +52,7 @@ def batch_input():
                 status_placeholder.error("Lỗi đọc cột 'review'. Vui lòng kiểm tra lại tên cột trong file.")
                 st.stop()
 
-            output = predict(text, tokenizer, model, aspect_type=model_choice, preprocessor=preprocessor)
+            output = predict(text, tokenizer, model, aspect_type=model_choice, preprocessor=preprocessor,confidence_threshold=st.session_state.confidence_threshold)
 
             if isinstance(output, str) or not isinstance(output, (list, tuple)) or len(output) == 0:
                 continue
@@ -121,4 +121,3 @@ def batch_input():
                 file_name="ket_qua_phan_tich.xlsx",
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
-        st.success("Phân tích hoàn tất!")

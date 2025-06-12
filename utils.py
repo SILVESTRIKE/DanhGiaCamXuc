@@ -9,7 +9,6 @@ from config import ASPECTS, LABEL_ENCODER, ASPECT_KEYWORDS
 import streamlit as st
 import unicodedata
 
-
 @st.cache_resource
 def load_model_and_tokenizer(model_choice):
     path_map = {
@@ -43,7 +42,7 @@ class DummyPreprocessor:
         return word_tokenize(text, format="text").lower()
 
 
-def predict(text, tokenizer, model, aspect_type, device=None, preprocessor=None, confidence_threshold=0.7):
+def predict(text, tokenizer, model, aspect_type, device=None, preprocessor=None, confidence_threshold=None):
     aspects = ASPECTS[aspect_type]
     keywords_dict = ASPECT_KEYWORDS[aspect_type]
 
@@ -51,6 +50,9 @@ def predict(text, tokenizer, model, aspect_type, device=None, preprocessor=None,
         preprocessor = DummyPreprocessor()
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if confidence_threshold is None:
+        confidence_threshold = st.session_state.get("confidence_threshold", 0.7)
+
 
     clean_text = preprocessor.process_text(text, normalize_tone=True, segment=True)
     mentioned_aspects = [
