@@ -77,8 +77,11 @@ def batch_input():
 
             if isinstance(output, str) or not isinstance(output, (list, tuple)) or len(output) == 0:
                 continue
-            
+
             result, *_ = output
+            if isinstance(result, str):
+                continue  # bỏ qua nếu không phát hiện khía cạnh nào
+
             for aspect, val in result.items():
                 results_all.append({
                     'STT': str(idx + 1),
@@ -87,8 +90,7 @@ def batch_input():
                     'Cảm xúc': val['label'].capitalize(),
                     'Tự tin': max(val['probs'])
                 })
-            
-            # Cập nhật thanh progress bên trong placeholder
+
             progress_bar.progress((idx + 1) / len(df))
 
         # 4. Sau khi xong, cập nhật chính placeholder đó bằng thông báo thành công
