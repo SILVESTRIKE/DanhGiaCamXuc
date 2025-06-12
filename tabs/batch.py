@@ -13,37 +13,20 @@ def batch_input():
     tokenizer, model = load_model_and_tokenizer(model_choice)
     preprocessor = DummyPreprocessor()
 
-    uploaded_file = st.file_uploader("Tải lên file chứa đánh giá (CSV, Excel, TXT)", type=["csv", "xlsx", "xls", "txt"])
+    uploaded_file = st.file_uploader(
+        "Tải lên file chứa đánh giá (Excel hoặc TXT)", 
+        type=["xlsx", "xls", "txt"]
+    )
 
     if uploaded_file:
         try:
-            if uploaded_file.name.endswith(".csv"):
-                encodings = ['utf-8', 'latin1', 'utf-8-sig']
-                delimiters = [',', ';', '\t']
-                df = None
-                for enc in encodings:
-                    for delim in delimiters:
-                        try:
-                            df = pd.read_csv(uploaded_file, encoding=enc, sep=delim)
-                            break
-                        except Exception:
-                            continue
-                    if df is not None:
-                        break
-                if df is None:
-                    st.error("Không thể đọc file CSV với bất kỳ mã hóa hoặc dấu phân cách nào.")
-                    return
-                # Check line count
-                with io.TextIOWrapper(uploaded_file, encoding='utf-8') as f:
-                    raw_lines = len(f.readlines())
-                st.write(f"Số dòng thô: {raw_lines}, Số dòng đọc được: {len(df)}")
-            elif uploaded_file.name.endswith((".xlsx", ".xls")):
+            if uploaded_file.name.endswith((".xlsx", ".xls")):
                 df = pd.read_excel(uploaded_file)
             elif uploaded_file.name.endswith(".txt"):
                 lines = uploaded_file.read().decode("utf-8").splitlines()
                 df = pd.DataFrame({'review': lines})
             else:
-                st.error("Định dạng không hỗ trợ.")
+                st.error("Định dạng không hỗ trợ. Chỉ chấp nhận Excel (.xlsx, .xls) hoặc text (.txt).")
                 return
         except Exception as e:
             st.error(f"Không thể đọc file: {e}")
@@ -52,18 +35,14 @@ def batch_input():
         if 'review' not in df.columns:
             st.error("File phải có cột tên 'review'")
             return
+
         results_all = []
-                
-        # 1. Tạo một placeholder (khung chứa) rỗng
         status_placeholder = st.empty()
 
-        # 2. Đặt thanh progress bar vào placeholder đó
-        # Dùng `with` để các thành phần con được gom vào placeholder
         with status_placeholder.container():
             st.write(f"Đang phân tích {len(df)} dòng đánh giá...")
             progress_bar = st.progress(0)
 
-        # 3. Chạy vòng lặp và chỉ cập nhật thanh progress bar
         for idx, row in enumerate(df.itertuples(index=False)):
             try:
                 text = str(row.review)
@@ -80,7 +59,7 @@ def batch_input():
 
             result, *_ = output
             if isinstance(result, str):
-                continue  # bỏ qua nếu không phát hiện khía cạnh nào
+                continue
 
             for aspect, val in result.items():
                 results_all.append({
@@ -93,13 +72,13 @@ def batch_input():
 
             progress_bar.progress((idx + 1) / len(df))
 
-        # 4. Sau khi xong, cập nhật chính placeholder đó bằng thông báo thành công
         df_out = pd.DataFrame(results_all)
         status_placeholder.success(f"Đã phân tích xong! Tìm thấy {len(df_out)} khía cạnh từ {len(df)} review.")
                 
         if not results_all:
             st.warning("Không có khía cạnh nào được phát hiện trong dữ liệu.")
             return
+
         with st.expander("📄 Xem bảng kết quả"):
             st.dataframe(df_out, use_container_width=True)
 
@@ -109,7 +88,9 @@ def batch_input():
             with col1:
                 st.markdown("#### Tỷ lệ cảm xúc")
                 fig1, ax1 = plt.subplots()
-                df_out['Cảm xúc'].value_counts().plot.pie(autopct='%1.1f%%', ax=ax1, colors=['green', 'red', 'gray'])
+                df_out['Cảm xúc'].value_counts().plot.pie(
+                    autopct='%1.1f%%', ax=ax1, colors=['green', 'red', 'gray']
+                )
                 ax1.set_ylabel("")
                 st.pyplot(fig1)
 
@@ -140,3 +121,4 @@ def batch_input():
                 file_name="ket_qua_phan_tich.xlsx",
                 mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
+        st.success("Phân tích hoàn tất!")
