@@ -11,7 +11,7 @@ def input():
     if 'history' not in st.session_state:
         st.session_state.history = []
 
-    text_input = st.text_area("Nhập đánh giá:", height=300)
+    text_input = st.text_area("Nhập đánh giá:", height=200)
     if st.button("Phân tích") and text_input.strip():
         output = predict(
             text_input,
